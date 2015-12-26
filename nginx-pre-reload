@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+
+set -eo pipefail; [[ $DOKKU_TRACE ]] && set -x
+source "$PLUGIN_CORE_AVAILABLE_PATH/common/functions"
+
+APP="$1"; INTERNAL_PORT="$2"; INTERNAL_IP_ADDRESS="$3"
+
+DOKKU_APP_CIDS=($(get_app_container_ids $APP))
+
+rm -Rf "$DOKKU_ROOT/$APP/nginx.conf.d"
+docker cp "${DOKKU_APP_CIDS[0]}:/app/nginx.conf.d" "$DOKKU_ROOT/$APP/nginx.conf.d" 2> /dev/null || true
+
+if [ "$(ls -A $DOKKU_ROOT/$APP/nginx.conf.d)" ]; then
+  dokku_log_info1 "Custom nginx.conf.d found:"
+  dokku_log_info1 "$(ls $DOKKU_ROOT/$APP/nginx.conf.d)"
+fi
+
+
+# TODO: We'd need to merge with existing nginx.conf.d files, but we DO NOT DO THIS YET!!!
